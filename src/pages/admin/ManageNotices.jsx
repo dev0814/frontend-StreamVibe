@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import './ManageNotices.css';
 
 const ManageNotices = () => {
+  const navigate = useNavigate();
   const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState('');
   const [filters, setFilters] = useState({
     branch: 'All',
     year: 'All',
@@ -25,18 +28,31 @@ const ManageNotices = () => {
   const statuses = ['All', 'active', 'expired'];
 
   useEffect(() => {
+    console.log('Fetching notices with filters:', filters);
     fetchNotices();
   }, [filters]);
 
   const fetchNotices = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/notices', { params: filters });
-      setNotices(response.data);
-      setError(null);
-    } catch (err) {
-      setError('Failed to fetch notices');
-      console.error('Error fetching notices:', err);
+      const response = await axios.get('/api/notices', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        params: filters
+      });
+      console.log('API Response:', response.data);
+      
+      // The notices are in response.data.data
+      if (response.data.success && Array.isArray(response.data.data)) {
+        setNotices(response.data.data);
+      } else {
+        console.error('Invalid response format:', response.data);
+        setNotices([]);
+      }
+    } catch (error) {
+      console.error('Error fetching notices:', error);
+      setNotices([]);
     } finally {
       setLoading(false);
     }
@@ -56,19 +72,24 @@ const ManageNotices = () => {
   };
 
   const handleEditClick = (notice) => {
-    setEditFormData({
-      ...notice,
-      expirationType: notice.expirationDate ? 'date' : 'duration'
-    });
-    setShowEditModal(true);
+    navigate(`/admin/edit-notice/${notice._id}`);
   };
 
   const handleDeleteConfirm = async () => {
     try {
-      await axios.delete(`/api/notices/${selectedNotice._id}`);
+      await axios.delete(`/api/notices/${selectedNotice._id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       setNotices(prev => prev.filter(notice => notice._id !== selectedNotice._id));
       setShowDeleteModal(false);
       setSelectedNotice(null);
+      setSuccess('Notice deleted successfully');
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSuccess('');
+      }, 3000);
     } catch (err) {
       setError('Failed to delete notice');
       console.error('Error deleting notice:', err);
@@ -78,7 +99,11 @@ const ManageNotices = () => {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.put(`/api/notices/${editFormData._id}`, editFormData);
+      const response = await axios.put(`/api/notices/${editFormData._id}`, editFormData, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       setNotices(prev => prev.map(notice => 
         notice._id === editFormData._id ? response.data : notice
       ));
@@ -99,6 +124,7 @@ const ManageNotices = () => {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -107,21 +133,28 @@ const ManageNotices = () => {
   };
 
   const getStatusBadgeClass = (notice) => {
+    if (!notice) return 'expired';
+    
     const now = new Date();
     const expiryDate = notice.expirationDate 
       ? new Date(notice.expirationDate)
-      : new Date(notice.createdAt.getTime() + getDurationInMs(notice.expirationDuration));
+      : notice.expirationDuration 
+        ? new Date(notice.createdAt).getTime() + getDurationInMs(notice.expirationDuration)
+        : null;
     
-    return now > expiryDate ? 'expired' : 'active';
+    return expiryDate && now > expiryDate ? 'expired' : 'active';
   };
 
   const getDurationInMs = (duration) => {
+    if (!duration) return 0;
+    
     const [value, unit] = duration.split(' ');
     const multiplier = {
       'days': 24 * 60 * 60 * 1000,
       'months': 30 * 24 * 60 * 60 * 1000,
       'year': 365 * 24 * 60 * 60 * 1000
-    }[unit];
+    }[unit] || 0;
+    
     return parseInt(value) * multiplier;
   };
 
@@ -136,13 +169,27 @@ const ManageNotices = () => {
   return (
     <div className="manage-notices-container">
       <div className="page-header">
-        <h1>Manage Notices</h1>
-        <p>View and manage all notices in the system</p>
+        <div>
+          <h1>Manage Notices</h1>
+          <p>View and manage all notices in the system</p>
+        </div>
+        <button 
+          className="create-button"
+          onClick={() => navigate('/admin/post-notice')}
+        >
+          Create New Notice
+        </button>
       </div>
 
       {error && (
         <div className="error-message">
           {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="success-message">
+          {success}
         </div>
       )}
 
@@ -229,7 +276,7 @@ const ManageNotices = () => {
       </div>
 
       <div className="notices-list">
-        {notices.length === 0 ? (
+        {!Array.isArray(notices) || notices.length === 0 ? (
           <div className="no-notices">
             No notices found matching the selected filters
           </div>
@@ -266,6 +313,10 @@ const ManageNotices = () => {
                   <span className="value">{notice.year}</span>
                 </div>
                 <div className="detail-item">
+                  <span className="label">Posted by:</span>
+                  <span className="value">{notice.teacher?.name || 'Unknown'}</span>
+                </div>
+                <div className="detail-item">
                   <span className="label">Posted:</span>
                   <span className="value">{formatDate(notice.createdAt)}</span>
                 </div>
@@ -274,7 +325,7 @@ const ManageNotices = () => {
                   <span className="value">
                     {notice.expirationDate 
                       ? formatDate(notice.expirationDate)
-                      : notice.expirationDuration}
+                      : notice.expirationDuration || 'Never'}
                   </span>
                 </div>
               </div>

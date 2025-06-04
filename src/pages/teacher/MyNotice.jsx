@@ -51,7 +51,8 @@ const MyNotice = () => {
   };
 
   const handleEdit = (noticeId) => {
-    navigate(`/edit-notice/${noticeId}`);
+    console.log('Editing notice with ID:', noticeId);
+    navigate(`/teacher/edit-notice/${noticeId}`);
   };
 
   const handleFilterChange = (e) => {

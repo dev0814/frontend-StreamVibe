@@ -38,6 +38,7 @@ import Analytics from './pages/teacher/Analytics';
 import PostNotice from './pages/teacher/PostNotice';
 import TeacherNotifications from './pages/teacher/Notifications';
 import MyNotice from './pages/teacher/MyNotice';
+import EditNotice from './pages/teacher/EditNotice';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -46,6 +47,8 @@ import VideoManagement from './pages/admin/VideoManagement';
 import CommentModeration from './pages/admin/CommentModeration';
 import AdminAnalytics from './pages/admin/Analytics';
 import ManageNotices from './pages/admin/ManageNotices';
+import AdminPostNotice from './pages/admin/PostNotice';
+import AdminEditNotice from './pages/admin/EditNotice';
 
 // Protected Route Components
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -103,6 +106,7 @@ function App() {
             <Route path="/teacher/analytics" element={<Analytics />} />
             <Route path="/teacher/notice" element={<PostNotice />} />
             <Route path="/teacher/my-notices" element={<MyNotice />} />
+            <Route path="/teacher/edit-notice/:noticeId" element={<EditNotice />} />
             <Route path="/teacher/notifications" element={<TeacherNotifications />} />
             <Route path="/teacher/profile" element={<Profile />} />
           </Route>
@@ -121,6 +125,8 @@ function App() {
             <Route path="/admin/comments" element={<CommentModeration />} />
             <Route path="/admin/analytics" element={<AdminAnalytics />} />
             <Route path="/admin/notices" element={<ManageNotices />} />
+            <Route path="/admin/post-notice" element={<AdminPostNotice />} />
+            <Route path="/admin/edit-notice/:noticeId" element={<AdminEditNotice />} />
             <Route path="/admin/profile" element={<Profile />} />
           </Route>
 

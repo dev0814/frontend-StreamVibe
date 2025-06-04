@@ -1,23 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useAuth } from '../../contexts/AuthContext';
 import './NoticeBoard.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const NoticeBoard = () => {
+  const { currentUser } = useAuth();
   const [notices, setNotices] = useState([]);
   const [selectedNotice, setSelectedNotice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    branch: 'All',
-    year: 'All',
     category: 'All'
   });
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [selectedPdf, setSelectedPdf] = useState(null);
 
-  const branches = ['All', 'CSE', 'CSE-AI', 'CSE-SF', 'ECE', 'EE', 'ME', 'CE'];
-  const years = ['All', '1st', '2nd', '3rd', '4th'];
   const categories = ['All', 'General', 'Academic', 'Event', 'Important', 'Other'];
 
   useEffect(() => {
@@ -27,10 +25,8 @@ const NoticeBoard = () => {
   const fetchNotices = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/notices', {
+      const response = await axios.get(`${API_URL}/notices`, {
         params: {
-          branch: filters.branch !== 'All' ? filters.branch : undefined,
-          year: filters.year !== 'All' ? filters.year : undefined,
           category: filters.category !== 'All' ? filters.category : undefined
         }
       });
@@ -76,32 +72,6 @@ const NoticeBoard = () => {
     <div className="notice-board-container">
       <div className="notice-sidebar">
         <div className="notice-filters">
-          <select 
-            name="branch"
-            value={filters.branch}
-            onChange={handleFilterChange}
-            className="filter-select"
-          >
-            {branches.map(branch => (
-              <option key={branch} value={branch}>
-                {branch === 'All' ? 'All Branches' : branch}
-              </option>
-            ))}
-          </select>
-
-          <select 
-            name="year"
-            value={filters.year}
-            onChange={handleFilterChange}
-            className="filter-select"
-          >
-            {years.map(year => (
-              <option key={year} value={year}>
-                {year === 'All' ? 'All Years' : year}
-              </option>
-            ))}
-          </select>
-
           <select 
             name="category"
             value={filters.category}
