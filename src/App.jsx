@@ -33,6 +33,7 @@ import TeacherDashboard from './pages/teacher/Dashboard';
 import UploadVideo from './pages/teacher/UploadVideo';
 import ManageVideos from './pages/teacher/ManageVideos';
 import VideoDetail from './pages/teacher/VideoDetail';
+import EditVideo from './pages/teacher/EditVideo';
 import TeacherPlaylists from './pages/teacher/Playlists';
 import Analytics from './pages/teacher/Analytics';
 import PostNotice from './pages/teacher/PostNotice';
@@ -101,6 +102,7 @@ function App() {
             <Route path="/teacher/upload" element={<UploadVideo />} />
             <Route path="/teacher/videos" element={<ManageVideos />} />
             <Route path="/teacher/videos/:id" element={<VideoDetail />} />
+            <Route path="/teacher/videos/:id/edit" element={<EditVideo />} />
             <Route path="/teacher/playlists" element={<TeacherPlaylists />} />
             <Route path="/teacher/playlists/:playlistId" element={<TeacherPlaylists />} />
             <Route path="/teacher/analytics" element={<Analytics />} />

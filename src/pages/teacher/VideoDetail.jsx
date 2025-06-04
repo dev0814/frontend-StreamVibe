@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import io from 'socket.io-client';
+import TeacherVideoPlayer from './TeacherVideoPlayer';
 import './VideoDetail.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -17,6 +18,7 @@ const VideoDetail = () => {
   const [socket, setSocket] = useState(null);
   const [replyToComment, setReplyToComment] = useState(null);
   const [replyContent, setReplyContent] = useState('');
+  const videoPlayerRef = useRef(null);
 
   // Initialize socket connection
   useEffect(() => {
@@ -308,6 +310,23 @@ const VideoDetail = () => {
     setReplyContent('');
   };
 
+  // Handle video error
+  const handleVideoError = (error) => {
+    console.error('Video playback error:', error);
+    setError('Failed to play video. Please try again later.');
+  };
+
+  // Handle video can play
+  const handleVideoCanPlay = () => {
+    setError(null);
+  };
+
+  // Handle time update
+  const handleTimeUpdate = (currentTime) => {
+    // You can implement any time-based features here
+    console.log('Current time:', currentTime);
+  };
+
   if (loading) {
     return <div className="loading">Loading video...</div>;
   }
@@ -349,17 +368,16 @@ const VideoDetail = () => {
       </div>
       
       <div className="video-player-container">
-        <div className="video-player">
-          <video 
-            controls 
-            poster={video.thumbnailUrl}
-            src={video.optimizedVideoUrl || video.videoUrl}
-            className="main-video-player"
-            crossOrigin="anonymous"
-          >
-            Your browser does not support the video tag.
-          </video>
-        </div>
+        {video && (
+          <TeacherVideoPlayer
+            ref={videoPlayerRef}
+            videoSource={video.optimizedVideoUrl || video.videoUrl}
+            onError={handleVideoError}
+            onCanPlay={handleVideoCanPlay}
+            onTimeUpdate={handleTimeUpdate}
+            error={error}
+          />
+        )}
       </div>
       
       <div className="video-info">
