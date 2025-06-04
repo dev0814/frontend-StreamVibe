@@ -16,15 +16,59 @@ const VideoManagement = () => {
     key: 'uploadDate',
     direction: 'desc'
   });
+  const [teacherFilter, setTeacherFilter] = useState('all');
+  const [teachers, setTeachers] = useState([]);
 
   const videosPerPage = 8;
   
+  // Fetch teachers
+  useEffect(() => {
+    const fetchTeachers = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+        
+        const response = await fetch('/api/users/teachers', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `Failed to fetch teachers: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        if (data && data.data) {
+          setTeachers(data.data);
+        } else {
+          console.error('Unexpected teachers data format:', data);
+          setTeachers([]);
+        }
+      } catch (error) {
+        console.error('Error fetching teachers:', error);
+        setTeachers([]);
+      }
+    };
+
+    fetchTeachers();
+  }, []);
+
   // Fetch videos from API
   useEffect(() => {
     const fetchVideos = async () => {
       setIsLoading(true);
       try {
         const token = localStorage.getItem('token');
+        
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
         
         // Create URL with filters
         let params = new URLSearchParams();
@@ -37,9 +81,16 @@ const VideoManagement = () => {
           params.append('search', searchTerm);
         }
         
+        if (teacherFilter !== 'all') {
+          params.append('teacher', teacherFilter);
+        }
+        
         // Sort parameters
         params.append('sort', sortConfig.key);
         params.append('order', sortConfig.direction);
+        
+        // Add admin flag to get all videos
+        params.append('admin', 'true');
         
         const queryString = params.toString();
         const url = `/api/videos${queryString ? `?${queryString}` : ''}`;
@@ -56,25 +107,22 @@ const VideoManagement = () => {
         // Check for JSON response
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
-          console.error('Server returned non-JSON response');
           throw new Error('Server returned non-JSON response');
         }
         
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Fetched videos:', data);
-          
-          if (data && data.data) {
-            setVideos(data.data);
-            setFilteredVideos(data.data);
-          } else {
-            console.error('Unexpected data format:', data);
-            setVideos([]);
-            setFilteredVideos([]);
-          }
-        } else {
+        if (!response.ok) {
           const errorData = await response.json();
-          console.error('API error:', errorData);
+          throw new Error(errorData.message || `Server error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Fetched videos:', data);
+        
+        if (data && data.data) {
+          setVideos(data.data);
+          setFilteredVideos(data.data);
+        } else {
+          console.error('Unexpected data format:', data);
           setVideos([]);
           setFilteredVideos([]);
         }
@@ -82,13 +130,14 @@ const VideoManagement = () => {
         console.error('Error fetching videos:', error);
         setVideos([]);
         setFilteredVideos([]);
+        // You might want to show an error message to the user here
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchVideos();
-  }, [filter, searchTerm, sortConfig]);
+  }, [filter, searchTerm, sortConfig, teacherFilter]);
 
   // Get current videos for pagination
   const indexOfLastVideo = currentPage * videosPerPage;
@@ -96,13 +145,21 @@ const VideoManagement = () => {
   const currentVideos = filteredVideos.slice(indexOfFirstVideo, indexOfLastVideo);
   const totalPages = Math.ceil(filteredVideos.length / videosPerPage);
 
-  // Format date
+  // Helper functions
+  const formatDuration = (seconds) => {
+    if (!seconds) return '00:00';
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
   const formatDate = (dateString) => {
+    if (!dateString) return 'Unknown date';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   };
 
@@ -163,7 +220,8 @@ const VideoManagement = () => {
       
       const requestData = {
         videoIds: selectedVideos,
-        action: actionType
+        action: actionType,
+        isAdmin: true // Add admin flag
       };
       
       const response = await fetch(endpoint, {
@@ -189,6 +247,10 @@ const VideoManagement = () => {
         
         if (searchTerm) {
           params.append('search', searchTerm);
+        }
+        
+        if (teacherFilter !== 'all') {
+          params.append('teacher', teacherFilter);
         }
         
         params.append('sort', sortConfig.key);
@@ -281,6 +343,21 @@ const VideoManagement = () => {
             <option value="reported">Reported</option>
           </select>
         </div>
+
+        <div className="filter-box">
+          <label>Filter by Teacher:</label>
+          <select 
+            value={teacherFilter} 
+            onChange={(e) => setTeacherFilter(e.target.value)}
+          >
+            <option value="all">All Teachers</option>
+            {teachers.map(teacher => (
+              <option key={teacher._id} value={teacher._id}>
+                {teacher.name}
+              </option>
+            ))}
+          </select>
+        </div>
         
         <div className="sort-box">
           <label>Sort by:</label>
@@ -327,78 +404,79 @@ const VideoManagement = () => {
         </div>
       )}
       
+      {/* Replace video grid with table */}
       {currentVideos.length > 0 ? (
-        <div className="video-grid">
-          {currentVideos.map(video => (
-            <div key={video.id} className="video-card">
-              <div className="card-header">
-                <label className="checkbox-container">
-                  <input 
-                    type="checkbox"
-                    checked={selectedVideos.includes(video.id)}
-                    onChange={() => handleSelectVideo(video.id)}
-                  />
-                  <span className="checkmark"></span>
-                </label>
-                <div className="video-status">
-                  <span className={`status-badge ${getStatusBadgeClass(video.status)}`}>
-                    {video.status}
-                  </span>
-                </div>
-                <div className="video-actions">
-                  <div className="action-dropdown">
-                    <button className="action-dropdown-toggle">
-                      <i className="fas fa-ellipsis-v"></i>
-                    </button>
-                    <div className="action-dropdown-menu">
-                      <Link to={`/admin/video-management/edit/${video.id}`} className="dropdown-item">
-                        <i className="fas fa-edit"></i> Edit
-                      </Link>
-                      <Link to={`/watch/${video.id}`} className="dropdown-item">
-                        <i className="fas fa-play"></i> Watch
-                      </Link>
-                      {video.status === 'published' ? (
-                        <button className="dropdown-item">
-                          <i className="fas fa-eye-slash"></i> Unpublish
-                        </button>
-                      ) : (
-                        <button className="dropdown-item">
-                          <i className="fas fa-check-circle"></i> Publish
-                        </button>
-                      )}
-                      {video.status === 'reported' && (
-                        <button className="dropdown-item">
-                          <i className="fas fa-flag"></i> View Reports
-                        </button>
-                      )}
-                      <button className="dropdown-item text-danger">
-                        <i className="fas fa-trash-alt"></i> Delete
-                      </button>
-                    </div>
-                  </div>
+        <div className="videos-table">
+          <div className="table-header">
+            <div className="checkbox-cell">
+              <input
+                type="checkbox"
+                checked={selectedVideos.length === currentVideos.length}
+                onChange={handleSelectAll}
+              />
+            </div>
+            <div>Video</div>
+            <div>Details</div>
+            <div>Stats</div>
+            <div>Actions</div>
+          </div>
+          
+          {currentVideos.map((video) => (
+            <div key={video._id} className="table-row">
+              <div className="checkbox-cell">
+                <input
+                  type="checkbox"
+                  checked={selectedVideos.includes(video._id)}
+                  onChange={() => handleSelectVideo(video._id)}
+                />
+              </div>
+              
+              <div className="thumbnail-cell">
+                <div className="video-thumbnail">
+                  <img src={video.thumbnailUrl} alt={video.title} />
+                  <span className="duration">{formatDuration(video.duration)}</span>
                 </div>
               </div>
-              <div className="video-thumbnail">
-                <img src={video.thumbnail} alt={video.title} />
-                <span className="video-duration">{video.duration}</span>
-              </div>
-              <div className="video-details">
-                <h3 className="video-title" title={video.title}>
-                  <Link to={`/admin/video-management/edit/${video.id}`}>{video.title}</Link>
+              
+              <div className="details-cell">
+                <h3 className="video-title">
+                  <Link to={`/admin/video-management/${video._id}`}>{video.title}</Link>
                 </h3>
-                <p className="video-author">By {video.author.name}</p>
+                <p className="video-description">{video.description?.substring(0, 100)}{video.description?.length > 100 ? '...' : ''}</p>
                 <div className="video-meta">
-                  <span className="video-views">
-                    <i className="fas fa-eye"></i> {formatViews(video.views)}
-                  </span>
-                  <span className="video-date">
-                    <i className="fas fa-calendar-alt"></i> {formatDate(video.uploadDate)}
-                  </span>
+                  <span className="upload-date">Uploaded on {formatDate(video.createdAt)}</span>
+                  <span className="category">{video.subject}</span>
+                  <span className="teacher">By {video.author?.name || 'Unknown Teacher'}</span>
                 </div>
-                <div className="video-tags">
-                  {video.tags.map((tag, index) => (
-                    <span key={index} className="tag">{tag}</span>
-                  ))}
+              </div>
+              
+              <div className="stats-cell">
+                <div className="stat-item">
+                  <span className="stat-label">Views</span>
+                  <span className="stat-value">{formatViews(video.views)}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Likes</span>
+                  <span className="stat-value">{video.likes ? (Array.isArray(video.likes) ? video.likes.length : video.likes) : 0}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Comments</span>
+                  <span className="stat-value">{video.comments ? (Array.isArray(video.comments) ? video.comments.length : video.comments) : 0}</span>
+                </div>
+              </div>
+              
+              <div className="actions-cell">
+                <div className="action-buttons">
+                  <Link to={`/admin/video-management/edit/${video._id}`} className="edit-btn" aria-label={`Edit ${video.title}`}>
+                    Edit
+                  </Link>
+                  <button 
+                    className="delete-btn" 
+                    onClick={() => handleDeleteVideo(video._id)}
+                    aria-label={`Delete ${video.title}`}
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             </div>
@@ -408,7 +486,7 @@ const VideoManagement = () => {
         <div className="no-results">
           <i className="fas fa-search"></i>
           <p>No videos found matching your criteria</p>
-          <button onClick={() => {setSearchTerm(''); setFilter('all');}}>
+          <button onClick={() => {setSearchTerm(''); setFilter('all'); setTeacherFilter('all');}}>
             Clear Filters
           </button>
         </div>

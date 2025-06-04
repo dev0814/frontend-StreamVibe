@@ -109,7 +109,7 @@ const MyNotice = () => {
         <h1>My Notices</h1>
         <button 
           className="create-button"
-          onClick={() => navigate('/post-notice')}
+          onClick={() => navigate('/teacher/notice')}
         >
           Create New Notice
         </button>

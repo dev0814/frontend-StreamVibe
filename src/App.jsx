@@ -45,6 +45,8 @@ import EditNotice from './pages/teacher/EditNotice';
 import AdminDashboard from './pages/admin/Dashboard';
 import UserManagement from './pages/admin/UserManagement';
 import VideoManagement from './pages/admin/VideoManagement';
+import AdminVideoDetail from './pages/admin/VideoDetail';
+import AdminEditVideo from './pages/admin/EditVideo';
 import CommentModeration from './pages/admin/CommentModeration';
 import AdminAnalytics from './pages/admin/Analytics';
 import ManageNotices from './pages/admin/ManageNotices';
@@ -123,7 +125,9 @@ function App() {
           >
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/users" element={<UserManagement />} />
-            <Route path="/admin/videos" element={<VideoManagement />} />
+            <Route path="/admin/video-management" element={<VideoManagement />} />
+            <Route path="/admin/video-management/:id" element={<AdminVideoDetail />} />
+            <Route path="/admin/video-management/edit/:id" element={<AdminEditVideo />} />
             <Route path="/admin/comments" element={<CommentModeration />} />
             <Route path="/admin/analytics" element={<AdminAnalytics />} />
             <Route path="/admin/notices" element={<ManageNotices />} />

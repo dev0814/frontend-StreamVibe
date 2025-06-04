@@ -40,7 +40,7 @@ const AdminLayout = () => {
           </li>
           <li>
             <NavLink 
-              to="/admin/videos" 
+              to="/admin/video-management" 
               className={({ isActive }) => isActive ? 'active' : ''}
             >
               <span className="icon">🎥</span> Video Management
@@ -80,7 +80,7 @@ const AdminLayout = () => {
             <h1>
               {location.pathname === '/admin/dashboard' && 'Admin Dashboard'}
               {location.pathname === '/admin/users' && 'User Management'}
-              {location.pathname === '/admin/videos' && 'Video Management'}
+              {location.pathname === '/admin/video-management' && 'Video Management'}
               {location.pathname === '/admin/comments' && 'Comment Moderation'}
               {location.pathname === '/admin/analytics' && 'Platform Analytics'}
               {location.pathname === '/admin/notices' && 'Manage Notices'}
