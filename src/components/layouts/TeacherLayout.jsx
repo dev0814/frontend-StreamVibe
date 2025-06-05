@@ -18,16 +18,16 @@ const TeacherLayout = () => {
       <div className="sidebar">
         <div className="sidebar-header">
           <h2>
-            <Link to="/teacher/dashboard">StreamVibe</Link>
+            <Link to="/teacher/analytics">StreamVibe</Link>
           </h2>
         </div>
         <ul className="sidebar-menu">
           <li>
             <NavLink 
-              to="/teacher/dashboard" 
+              to="/teacher/analytics" 
               className={({ isActive }) => isActive ? 'active' : ''}
             >
-              <span className="icon">📊</span> Dashboard
+              <span className="icon">📈</span> Analytics
             </NavLink>
           </li>
           <li>
@@ -52,14 +52,6 @@ const TeacherLayout = () => {
               className={({ isActive }) => isActive ? 'active' : ''}
             >
               <span className="icon">📚</span> Playlists
-            </NavLink>
-          </li>
-          <li>
-            <NavLink 
-              to="/teacher/analytics" 
-              className={({ isActive }) => isActive ? 'active' : ''}
-            >
-              <span className="icon">📈</span> Analytics
             </NavLink>
           </li>
           <li>
@@ -94,12 +86,11 @@ const TeacherLayout = () => {
         <header className="dashboard-header">
           <div className="dashboard-title">
             <h1>
-              {location.pathname === '/teacher/dashboard' && 'Dashboard'}
+              {location.pathname === '/teacher/analytics' && 'Analytics'}
               {location.pathname === '/teacher/upload' && 'Upload Video'}
               {location.pathname === '/teacher/videos' && 'My Videos'}
               {location.pathname === '/teacher/playlists' && 'Playlists'}
               {location.pathname.startsWith('/teacher/playlists/') && 'Playlist Details'}
-              {location.pathname === '/teacher/analytics' && 'Analytics'}
               {location.pathname === '/teacher/notice' && 'Post Notice'}
               {location.pathname === '/teacher/my-notices' && 'My Notices'}
               {location.pathname === '/teacher/notifications' && 'Notifications'}

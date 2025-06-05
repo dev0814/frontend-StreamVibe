@@ -110,7 +110,7 @@ export const AuthProvider = ({ children }) => {
         navigate('/student/dashboard');
       } else if (role === 'teacher') {
         if (isApproved) {
-          navigate('/teacher/dashboard');
+          navigate('/teacher/analytics');
         } else {
           navigate('/login', { 
             state: { message: 'Registration successful. Please wait for admin approval before you can login.' } 
@@ -155,7 +155,7 @@ export const AuthProvider = ({ children }) => {
       if (role === 'student') {
         navigate('/student/dashboard');
       } else if (role === 'teacher') {
-        navigate('/teacher/dashboard');
+        navigate('/teacher/analytics');
       } else if (role === 'admin') {
         navigate('/admin/dashboard');
       }

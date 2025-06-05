@@ -29,7 +29,6 @@ import Search from './pages/student/Search';
 import NoticeBoard from './pages/student/NoticeBoard';
 
 // Teacher Pages
-import TeacherDashboard from './pages/teacher/Dashboard';
 import UploadVideo from './pages/teacher/UploadVideo';
 import ManageVideos from './pages/teacher/ManageVideos';
 import VideoDetail from './pages/teacher/VideoDetail';
@@ -100,7 +99,6 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
             <Route path="/teacher/upload" element={<UploadVideo />} />
             <Route path="/teacher/videos" element={<ManageVideos />} />
             <Route path="/teacher/videos/:id" element={<VideoDetail />} />

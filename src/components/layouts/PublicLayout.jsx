@@ -12,7 +12,7 @@ const PublicLayout = () => {
     if (currentUser.role === 'student') {
       return '/student/dashboard';
     } else if (currentUser.role === 'teacher') {
-      return '/teacher/dashboard';
+      return '/teacher/analytics';
     } else if (currentUser.role === 'admin') {
       return '/admin/dashboard';
     }

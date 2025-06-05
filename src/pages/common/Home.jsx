@@ -18,7 +18,7 @@ const Home = () => {
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-content fade-in">
-          <h1>Welcome to EduStream</h1>
+          <h1>Welcome to StreamVibe</h1>
           <h2 className="fade-in">Learn Anytime, Anywhere</h2>
           <p className="fade-in">Experience interactive learning with access to lectures, courses, and educational resources</p>
           <div className="cta-buttons fade-in">
@@ -42,16 +42,16 @@ const Home = () => {
             <h3>Multi-device Access</h3>
             <p>Learn on any device - laptop, tablet, or smartphone</p>
           </div>
-          <div className="feature-card fade-in">
+          {/* <div className="feature-card fade-in">
             <div className="feature-icon">🔍</div>
             <h3>Course Search</h3>
             <p>Find your courses and materials with powerful search tools</p>
-          </div>
-          <div className="feature-card fade-in">
+          </div> */}
+          {/* <div className="feature-card fade-in">
             <div className="feature-icon">💾</div>
             <h3>Download & Watch</h3>
             <p>Download lectures to watch offline anytime, anywhere</p>
-          </div>
+          </div> */}
         </div>
       </section>
 
